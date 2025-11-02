@@ -16,7 +16,6 @@ Carlos Maziero, DINF/UFPR 2020
 
 pthread_t filosofo [NUMFILO] ;	// threads filosofos
 sem_t     hashi    [NUMFILO] ;	// um semaforo para cada palito (iniciam em 1)
-sem_t     saleiro;
 
 // espaços para separar as colunas de impressão
 char *space[] = {"", "\t", "\t\t", "\t\t\t", "\t\t\t\t" } ;
@@ -32,14 +31,14 @@ void espera (int n)
 void come (int f)
 {
   printf ("%sF%d COMENDO\n", space[f], f) ;
-  espera (1) ;
+  //espera (1) ;
 }
 
 // filósofo meditando
 void medita (int f)
 {
   printf ("%sF%d meditando\n", space[f], f) ;
-  espera (1) ;
+  //espera (1) ;
 }
 
 // pega o hashi
@@ -64,10 +63,17 @@ void *threadFilosofo (void *arg)
   while (1)
   {
     medita (i) ;
-    sem_wait(&saleiro);
-    pega_hashi (i, i) ;
-    pega_hashi (i, (i+1) % NUMFILO) ;
-    sem_post(&saleiro);
+    if (i==NUMFILO-1)
+    {
+     pega_hashi (i, (i+1) % NUMFILO) ;
+     pega_hashi (i, i) ;
+      
+    }
+    else
+    {
+      pega_hashi (i, i) ;
+      pega_hashi (i, (i+1) % NUMFILO) ;
+    }
     come (i) ;
     larga_hashi (i, i) ;
     larga_hashi (i, (i+1) % NUMFILO) ;
@@ -83,8 +89,6 @@ int main (int argc, char *argv[])
   // para o printf não se confundir com a threads
   setvbuf (stdout, 0, _IONBF, 0) ;
 
-  sem_init(&saleiro, 0 , 1);
-  //sem_init(&saleiro, 0 , NUMFILO-1); //posso colocar até n-1 saleiros para os filósofos
   // inicia os hashis
   for(i=0; i<NUMFILO; i++)
     sem_init (&hashi[i], 0, 1) ;
@@ -103,3 +107,4 @@ int main (int argc, char *argv[])
   // a main encerra aqui
   pthread_exit (NULL) ;
 }
+
